@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --border-color: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    --header-bg: rgba(255, 255, 255, 0.95);
+    --sidebar-bg: #0c0a1d;
+    --sidebar-text: #94a3b8;
+    --sidebar-border: #1e1b38;
+  }
+
+  .dark {
+    --bg-main: #090d16;
+    --bg-card: #0f172a;
+    --bg-card-hover: #1e293b;
+    --border-color: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #94a3b8;
+    --header-bg: rgba(15, 23, 42, 0.95);
+    --sidebar-bg: #0c0a1d;
+    --sidebar-text: #94a3b8;
+    --sidebar-border: #1e1b38;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* Card hover animation & transition polish */
+.bg-white {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+/* Table styling polish */
+table tbody tr {
+  transition: background-color 0.15s ease;
+}
+

@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  PROJECT_MANAGER
+  DEVELOPER
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model User {
+  id           String         @id @default(uuid()) @db.Uuid
+  name         String
+  email        String         @unique @db.VarChar(255)
+  passwordHash String         @db.VarChar(255)
+  role         UserRole       @default(DEVELOPER)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  createdProjects Project[]       @relation("ProjectCreator")
+  assignedTasks   Task[]          @relation("TaskAssignee")
+  activityLogs    ActivityLog[]
+  notifications   Notification[]
+  refreshTokens   RefreshToken[]
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @db.Uuid
+  tokenHash       String    @db.VarChar(255)
+  expiresAt       DateTime
+  revokedAt       DateTime?
+  replacedByTokenId String?  @db.Uuid
+  createdAt       DateTime  @default(now())
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedByToken RefreshToken? @relation("RefreshTokenReplacement", fields: [replacedByTokenId], references: [id], onDelete: SetNull)
+  replacedTokens  RefreshToken[] @relation("RefreshTokenReplacement")
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Client {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  email     String?   @db.VarChar(255)
+  phone     String?   @db.VarChar(50)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  projects Project[]
+}
+
+model Project {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  clientId    String    @db.Uuid
+  creatorId   String    @db.Uuid
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  creator      User          @relation("ProjectCreator", fields: [creatorId], references: [id], onDelete: Restrict)
+  tasks        Task[]
+  activityLogs ActivityLog[]
+
+  @@index([clientId])
+  @@index([creatorId])
+  @@index([createdAt])
+}
+
+model Task {
+  id                   String      @id @default(uuid()) @db.Uuid
+  projectId            String      @db.Uuid
+  assignedDeveloperId  String      @db.Uuid
+  title                String
+  description          String?
+  status               TaskStatus  @default(TODO)
+  priority             TaskPriority @default(MEDIUM)
+  dueDate              DateTime?
+  isOverdue            Boolean     @default(false)
+  overdueAt            DateTime?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  project           Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignedDeveloper User          @relation("TaskAssignee", fields: [assignedDeveloperId], references: [id], onDelete: Restrict)
+  activityLogs      ActivityLog[]
+
+  @@index([projectId])
+  @@index([assignedDeveloperId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+  @@index([isOverdue])
+  @@index([projectId, status])
+  @@index([assignedDeveloperId, status])
+  @@index([projectId, dueDate])
+  @@index([assignedDeveloperId, dueDate])
+  @@index([status, priority])
+  @@index([isOverdue, dueDate])
+}
+
+model ActivityLog {
+  id            String      @id @default(uuid()) @db.Uuid
+  taskId        String      @db.Uuid
+  projectId     String      @db.Uuid
+  userId        String      @db.Uuid
+  previousStatus TaskStatus?
+  newStatus     TaskStatus
+  message       String
+  createdAt     DateTime    @default(now())
+
+  task    Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([projectId, createdAt(sort: Desc)])
+  @@index([taskId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([newStatus, createdAt(sort: Desc)])
+}
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  message   String
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, isRead])
+}
