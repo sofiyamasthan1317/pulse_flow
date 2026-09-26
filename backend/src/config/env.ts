@@ -3,20 +3,12 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const requiredEnvKeys = [
-  "NODE_ENV",
-  "PORT",
   "DATABASE_URL",
-  "FRONTEND_URL",
-  "JWT_ACCESS_SECRET",
-  "JWT_REFRESH_SECRET",
-  "JWT_ACCESS_EXPIRES_IN",
-  "JWT_REFRESH_EXPIRES_IN",
-  "SOCKET_CORS_ORIGIN",
 ] as const;
 
 for (const key of requiredEnvKeys) {
   if (!process.env[key]) {
-    throw new Error(`Missing required environment variable: ${key}`);
+    console.warn(`[Warning] Missing environment variable: ${key}`);
   }
 }
 
