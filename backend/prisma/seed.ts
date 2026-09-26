@@ -11,16 +11,13 @@ const addDays = (days: number): Date => {
 };
 
 async function main() {
-  const modelNames = ["Notification", "ActivityLog", "Task", "Project", "Client", "User", "RefreshToken"] as const;
-
-  for (const modelName of modelNames) {
-    try {
-      const model = prisma[modelName];
-      await model.deleteMany();
-    } catch {
-      // Ignore models that are not present in a partially migrated dev database.
-    }
-  }
+  await prisma.notification.deleteMany().catch(() => {});
+  await prisma.activityLog.deleteMany().catch(() => {});
+  await prisma.task.deleteMany().catch(() => {});
+  await prisma.project.deleteMany().catch(() => {});
+  await prisma.client.deleteMany().catch(() => {});
+  await prisma.refreshToken.deleteMany().catch(() => {});
+  await prisma.user.deleteMany().catch(() => {});
 
   const admin = await prisma.user.create({
     data: {
