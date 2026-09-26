@@ -33,7 +33,7 @@ export const getRefreshTokenMaxAgeMs = (): number => parseDurationToMs(env.JWT_R
 export const refreshCookieOptions = {
   httpOnly: true,
   secure: env.NODE_ENV === "production",
-  sameSite: "lax" as const,
+  sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
   path: "/",
   maxAge: getRefreshTokenMaxAgeMs(),
 };

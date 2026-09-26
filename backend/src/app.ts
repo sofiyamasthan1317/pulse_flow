@@ -13,14 +13,24 @@ import projectsRoutes from "./routes/projects.routes.js";
 import tasksRoutes from "./routes/tasks.routes.js";
 import { sendSuccess } from "./utils/response.js";
 
-const allowedOrigins = env.FRONTEND_URL.split(",").map((origin) => origin.trim()).filter(Boolean);
+const rawAllowedOrigins = [
+  ...env.FRONTEND_URL.split(","),
+  "https://pulse-flow-eosin.vercel.app",
+];
+
+const allowedOrigins = Array.from(
+  new Set(rawAllowedOrigins.map((origin) => origin.trim().replace(/\/+$/, "")).filter(Boolean))
+);
 
 export const app = express();
+
+app.set("trust proxy", 1);
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || (env.NODE_ENV === "development" && /^http:\/\/localhost:517\d$/.test(origin))) {
+    const normalizedOrigin = origin.trim().replace(/\/+$/, "");
+    if (allowedOrigins.includes(normalizedOrigin) || (env.NODE_ENV === "development" && /^http:\/\/localhost:517\d$/.test(normalizedOrigin))) {
       return callback(null, true);
     }
     return callback(new Error("CORS policy error: Origin not allowed"), false);

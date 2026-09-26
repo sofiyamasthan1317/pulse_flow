@@ -214,13 +214,20 @@ const getMissedActivityForUser = async (user: AuthenticatedUser, lastSeenAt?: st
 };
 
 export const initializeSocket = (server: HttpServer): Server => {
-  const socketOrigins = env.SOCKET_CORS_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean);
+  const rawOrigins = [
+    ...env.SOCKET_CORS_ORIGIN.split(","),
+    "https://pulse-flow-eosin.vercel.app",
+  ];
+  const socketOrigins = Array.from(
+    new Set(rawOrigins.map((origin) => origin.trim().replace(/\/+$/, "")).filter(Boolean))
+  );
 
   io = new Server(server, {
     cors: {
       origin: (origin, callback) => {
         if (!origin) return callback(null, true);
-        if (socketOrigins.includes(origin) || (env.NODE_ENV === "development" && /^http:\/\/localhost:517\d$/.test(origin))) {
+        const normalizedOrigin = origin.trim().replace(/\/+$/, "");
+        if (socketOrigins.includes(normalizedOrigin) || (env.NODE_ENV === "development" && /^http:\/\/localhost:517\d$/.test(normalizedOrigin))) {
           return callback(null, true);
         }
         return callback(new Error("CORS policy error"), false);
